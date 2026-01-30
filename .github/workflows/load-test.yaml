@@ -14,22 +14,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
-      # GRADERS NOTE unncessary     
-      # Install debugging tools for troubleshooting
-      - name: Install diagnostic tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y jq curl wget htop net-tools dnsutils tcpdump
-
-      # GRADERS NOTE unncessary
-      # Install some prerequisites tools
-      - name: Install kubectl
-        run: |
-          curl -LO https://dl.k8s.io/release/v1.35.0/bin/linux/amd64/kubectl
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/
-          which kubectl
-          kubectl version --client
           
       # Start the cluster for running http echo
       - name: Create KinD cluster
