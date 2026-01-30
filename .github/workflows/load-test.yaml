@@ -87,15 +87,18 @@ jobs:
           name: k6-summary.json
           path: ./test-output/summary.json
       - name: Find summary comment
+        if: github.event_name == 'pull_request'
         id: fc
-        uses: peter-evans/find-comment@v4 # GRADERS NOTE no pin to SHA
+        uses: peter-evans/find-comment@v4
         with:
-          issue-number: ${{ github.event.number }}
+          issue-number: ${{ github.event.pull_request.number }}
           comment-author: 'github-actions[bot]'
           body-regex: 'Visit .*'
       - name: Upsert summary on PR
-        uses: peter-evans/create-or-update-comment@v5 #GRADERS NOTE no pin to SHA
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/create-or-update-comment@v5
         with:
           comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
           body-path: ./test-output/summary-gh-comment.txt
           edit-mode: replace
