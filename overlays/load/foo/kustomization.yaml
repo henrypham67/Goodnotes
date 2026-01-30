@@ -1,0 +1,56 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- ../../../base
+
+
+patchesJson6902:
+  - target:
+      version: v1
+      kind: Deployment
+      name: my-app
+    patch: |-
+      - op: replace
+        path: /metadata/name
+        value: foo
+      - op: replace
+        path: /metadata/labels/app
+        value: foo
+      - op: replace
+        path: /spec/selector/matchLabels/app
+        value: foo
+      - op: replace
+        path: /spec/template/metadata/labels/app
+        value: foo
+      - op: replace
+        path: /spec/template/spec/containers/0/args/0
+        value: -text=foo
+    # - op: replace
+    #   path: /spec/template/spec/containers/0/readinessProbe/httpGet/httpHeaders/0/value
+    #   value: foo.localhost
+  - target:
+      version: v1
+      kind: Service
+      name: my-app
+    patch: |-
+      - op: replace
+        path: /metadata/name
+        value: foo
+      - op: replace
+        path: /spec/selector/app
+        value: foo
+  - target:
+      version: v1
+      kind: Ingress
+      name: my-app
+    patch: |-
+      - op: replace
+        path: /metadata/name
+        value: foo
+      - op: replace
+        path: /spec/rules/0/host
+        value: "foo.localhost"
+      - op: replace
+        path: /spec/rules/0/http/paths/0/backend/service/name
+        value: foo

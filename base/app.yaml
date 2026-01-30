@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+  labels:
+    app: my-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - name: http-echo
+        image: hashicorp/http-echo # GRADERS NOTE: missing version pin
+        ports:
+        - name: http-echo
+          containerPort: 5678
+        args:
+        - -text=my-app
+        resources:
+          requests: # GRADERS NOTE: over provision resources
+            cpu: "400m"
+            memory: "400Mi"
+        readinessProbe:
+          httpGet:
+            port: http-echo
+            path: /health
+          failureThreshold: 5
+          successThreshold: 10
+          periodSeconds: 5
+          initialDelaySeconds: 5
+        # run as root to make it work ref: https://github.com/hashicorp/http-echo/blob/main/README.md
+        securityContext:
+          runAsUser: 0
+          runAsGroup: 0
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: my-app
+spec:
+  selector:
+    app: my-app
+  ports:
+  - port: 8080
+    targetPort: http-echo
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: my-app
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: "my-app.localhost"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: my-app
+            port:
+              number: 8080
+---
