@@ -14,22 +14,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
-      # GRADERS NOTE unncessary     
-      # Install debugging tools for troubleshooting
-      - name: Install diagnostic tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y jq curl wget htop net-tools dnsutils tcpdump
-
-      # GRADERS NOTE unncessary
-      # Install some prerequisites tools
-      - name: Install kubectl
-        run: |
-          curl -LO https://dl.k8s.io/release/v1.35.0/bin/linux/amd64/kubectl
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/
-          which kubectl
-          kubectl version --client
           
       # Start the cluster for running http echo
       - name: Create KinD cluster
@@ -53,9 +37,6 @@ jobs:
           kubectl apply -k overlays/load/foo
           kubectl apply -k overlays/load/bar
           kubectl wait --for=condition=ready pod --selector='app in (foo,bar)' --timeout=120s
-          sleep 15 # make sure it's ready
-      # NOTE: we build our own k6 because of 
-      # this marketplace action issue https://github.com/grafana/k6-action/tree/2bd221c807b7cdbe4bb3abc6b3fa4d2da499fa9b?tab=readme-ov-file#side-by-side-with-the-system-under-test
       - name: Install k6 
         run: |
           # GRADERS NOTE uncessary to build from source
@@ -87,15 +68,18 @@ jobs:
           name: k6-summary.json
           path: ./test-output/summary.json
       - name: Find summary comment
+        if: github.event_name == 'pull_request'
         id: fc
-        uses: peter-evans/find-comment@v4 # GRADERS NOTE no pin to SHA
+        uses: peter-evans/find-comment@v4
         with:
-          issue-number: ${{ github.event.number }}
+          issue-number: ${{ github.event.pull_request.number }}
           comment-author: 'github-actions[bot]'
           body-regex: 'Visit .*'
       - name: Upsert summary on PR
-        uses: peter-evans/create-or-update-comment@v5 #GRADERS NOTE no pin to SHA
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/create-or-update-comment@v5
         with:
           comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
           body-path: ./test-output/summary-gh-comment.txt
           edit-mode: replace
