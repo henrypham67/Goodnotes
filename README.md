@@ -31,3 +31,4 @@ K6 is used to perform a load test. To use different load size either pass flags 
 
 # Workflow example
 ![result screenshot](./media/pr_comment.png)
+
